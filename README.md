@@ -19,7 +19,14 @@ But when compared with some modern language, C is too crude in many respects.
   I don't wanna dicuss why not choose a modern language. I just wanna make us easy to write C program.
 A project must have a roadmap and the roadmap is:   
   1->2->3->4->5->6->7   
-  The current step is 1.
+
+##CURRENT STAGE
+  The current step is [container api]:  
+  ring : yes  
+  list : no  
+  dict : no  
+  oset : no  
+  uset : no
 
 
 ##RELATED WORK
