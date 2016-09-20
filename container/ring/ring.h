@@ -1,5 +1,5 @@
-#ifndef __CQUEUE_H__
-#define __CQUEUE_H__
+#ifndef __RING_H__
+#define __RING_H__
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
