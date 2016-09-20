@@ -6,7 +6,7 @@
 But when compared with some modern language, C is too crude in many respects.  
 1. no container api, like list, dictionary, set and many others.  
    # The basic three containers must be implement, list, dict, set.  
-   # Other containers should put into consideration.
+   # Other containers should put into consideration.  
 2. no concurrency data structure for multi-core application.   
    # multi-producer multi-consumer queue must be implement.   
 3. crude string api  
