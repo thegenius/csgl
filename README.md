@@ -3,7 +3,7 @@
 
 ##DESCRIPTION
   I am a lover of C language, for its simplicity, for its performance.
-But compare with some modern language, C is too crude in many respects.  
+But when compared with some modern language, C is too crude in many respects.  
 1. no collection api, like list, dictionary, set  
 2. no concurrency data structure for multi-core application  
 3. crude string api  
