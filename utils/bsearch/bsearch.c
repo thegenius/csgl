@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "bsearch.h"
 int binary_search(const void *arr, const size_t len, const size_t size, const void *target, binary_search_cmp_func cmp) {
     int head = -1;
