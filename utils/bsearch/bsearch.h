@@ -9,5 +9,8 @@
 *********************************************************************/
 typedef int (*binary_search_cmp_func)(const void*, const void*);
 extern int binary_search(const void *arr, const size_t len, const size_t size, const void *target, binary_search_cmp_func cmp);
+static inline int binary_search_insert_pos(const int idx) {
+    return idx>0 ? idx : -idx-1; 
+}
 
 #endif
