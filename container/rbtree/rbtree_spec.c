@@ -341,9 +341,25 @@ int rbtree_check_internal() {
 
     puts("check elem delete ...");
     cdata_t val;
-    rbtree_elem_delete(tree, 0, &val);
+    rbtree_elem_delete(tree, 0, &val); 
     assert(val.i == 123);
     assert(tree->root->child[0]->val.i == 124);
+    rbtree_elem_delete(tree, 4, &val);
+    assert(val.i == 127);
+    assert(tree->root->child[1]->val.i == 128); 
+    assert(tree->root->child[1]->child[1] == &rbtree_tail);
+    rbtree_elem_delete(tree, 2, &val);
+    assert(val.i == 125);
+    assert(tree->root->val.i == 126);
+    rbtree_elem_delete(tree, 3, &val);
+    assert(val.i == 126);
+    rbtree_elem_delete(tree, 1, &val);
+    assert(val.i == 124);
+    rbtree_elem_delete(tree, 5, &val);
+    assert(val.i == 128);
+
+
+
 
 
     for (int i=0; i<len; ++i) {

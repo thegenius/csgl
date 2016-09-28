@@ -158,17 +158,6 @@ void rbtree_delete_balance(rbtree_t *tree, rbtree_node_t *node) {
         rbtree_set_red(sibling);
         node = parent;
     }
-
-    /* adjust the size */
-    parent = rbtree_parent(node);
-    assert(parent);
-    while (parent != &rbtree_head) {
-        parent->size = parent->child[0]->size + parent->child[1]->size + 1;
-        node = parent;
-        parent = rbtree_parent(parent);
-    }
-    tree->root = node;
-    rbtree_set_black(tree->root);
 }
 
 int rbtree_iter_head(const rbtree_t *tree, rbtree_iter_t *iter) {
@@ -347,38 +336,43 @@ int __rbtree_elem_delete(rbtree_t *tree, const cdata_t idx, cdata_t *val) {
         rbtree_node_t *lchild = node->child[0];
         rbtree_node_t *rchild = node->child[1];
         if (lchild == &rbtree_tail) {
-            int node_color = rbtree_color(node);
-            int child_color = rbtree_color(rchild);
+            puts("lchild is nil");
+            if (rbtree_is_black(node) && rbtree_is_black(rchild)) {
+                rbtree_delete_balance(tree, node);
+            }
+            rbtree_set_black(rchild);
             rbtree_attach_child(parent, rbtree_get_index(node), rchild);
-            rbtree_set_color(rchild, node_color);
-            rbtree_delete_balance(tree, rchild);
-            rbtree_set_color(rchild, child_color);
+            rbtree_maintain(tree, rchild);
             return 0;
         }
 
         if (rchild == &rbtree_tail) {
-            int node_color = rbtree_color(node);
-            int child_color = rbtree_color(rchild);
+            puts("rchild is nil");
+            if (rbtree_is_black(node) && rbtree_is_black(lchild)) {
+                rbtree_delete_balance(tree, node);
+            }
+            rbtree_set_black(lchild);
             rbtree_attach_child(parent, rbtree_get_index(node), lchild);
-            rbtree_set_color(rchild, node_color);
-            rbtree_delete_balance(tree, lchild);
-            rbtree_set_color(rchild, child_color);
+            rbtree_maintain(tree, lchild);
             return 0;
         }
 
         /* the node has both lchild and rchild, find a node to replace */
         rbtree_node_t *replace;
         if (lchild->size > rchild->size) {
+            puts("choose left");
             replace = lchild;
             while (replace->child[1] != &rbtree_tail) {
                 replace = replace->child[1];
             }
         } else {
+            puts("choose right");
             replace = rchild;
             while (replace->child[0] != &rbtree_tail) {
                 replace = replace->child[0];
             }
         }
+        printf("replace key %d val:%d\n", replace->key.i, replace->val.i);
         node->key = replace->key;
         node->val = replace->val;
         node = replace;
