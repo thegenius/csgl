@@ -69,7 +69,7 @@ int rbtree_check_internal() {
 
     assert(rbtree_is_black(&rbtree_tail));
     rbtree_t *tree;
-    rbtree_create(&tree);
+    rbtree_create(&tree, 0);
     rbtree_iter_t iter;
     rbtree_node_t *node[len];
     for (int i=0; i<len; ++i) {
@@ -319,7 +319,7 @@ int rbtree_check_internal() {
 
     assert(rbtree_is_red(node[3]));
     
-    rbtree_create(&tree);
+    rbtree_create(&tree, 0);
     rbtree_elem_insert(tree, 0, 123);
     rbtree_elem_insert(tree, 5, 128);
     printf("root val:%d\n", tree->root->val.i);

@@ -15,7 +15,6 @@ typedef struct rbtree_node {
     cdata_t val;
 } rbtree_node_t;
 
-typedef int (*rbtree_cmp_func)(const cdata_t, const cdata_t);
 struct rbtree {
     size_t size;
     struct rbtree_node *root;
@@ -23,8 +22,6 @@ struct rbtree {
 };
 
 /* special node used to simplify the implementation */
-//rbtree_node_t rbtree_tail = {0, (rbtree_node_t*)1, &rbtree_tail, &rbtree_tail};
-//rbtree_node_t rbtree_head = {0, &rbtree_head, &rbtree_tail, &rbtree_tail};
 extern rbtree_node_t rbtree_tail;
 extern rbtree_node_t rbtree_head;
 

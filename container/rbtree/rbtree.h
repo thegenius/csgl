@@ -4,8 +4,9 @@
 
 typedef struct rbtree rbtree_t;
 typedef struct rbtree_node* rbtree_iter_t;
+typedef int (*rbtree_cmp_func)(const cdata_t, const cdata_t);
 
-extern int rbtree_create(rbtree_t **tree);
+extern int rbtree_create(rbtree_t **tree, rbtree_cmp_func cmp);
 extern int rbtree_delete(rbtree_t **tree);
 
 #define rbtree_elem_insert(tree, key, val) __rbtree_elem_insert(tree, (cdata_t)key, (cdata_t)val)

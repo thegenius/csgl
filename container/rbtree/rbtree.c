@@ -12,10 +12,10 @@ static int default_cmp (const cdata_t a, const cdata_t b) {
     return a.i - b.i;
 }
 
-int rbtree_create(rbtree_t **tree) {
+int rbtree_create(rbtree_t **tree, rbtree_cmp_func cmp) {
     *tree = (rbtree_t*)calloc(1, sizeof(rbtree_t));
     (*tree)->root = &rbtree_tail;
-    (*tree)->key_cmp = default_cmp;
+    (*tree)->key_cmp = cmp==0 ? default_cmp : cmp;
     return 0;
 }
 
