@@ -104,30 +104,6 @@ void rbtree_delete_balance(rbtree_t *tree, rbtree_node_t *node) {
     assert(node->child[1] == &rbtree_tail);
 
     rbtree_node_t *sibling, *parent, *uncle, *gparent;
-    printf("delete [%d]\n", node->id);
-    /* delete red node, just adjust the size */
-    //if (rbtree_is_red(node)) {
-    //    puts("red node case, just adjust size");
-    //    rbtree_adjust_size(node);
-    //    return;
-    //}
-
-    ///* delete the root node */
-    //parent = rbtree_parent(node);
-    //if (parent == &rbtree_head) {
-    //    puts("root case");
-    //    rbtree_node_t *lchild = node->child[0];
-    //    rbtree_node_t *rchild = node->child[1];
-    //    if (lchild != &rbtree_tail) {
-    //        tree->root = lchild;
-    //    } else {
-    //        tree->root = rchild;
-    //    }
-    //    rbtree_attach_child(&rbtree_head, 0, tree->root);
-    //    rbtree_set_black(tree->root);
-    //    return;
-    //}
-
     while ((parent = rbtree_parent(node)) != &rbtree_head) {
         /* if the node is black, and it has parent, there must be a sibling */
         rbtree_node_t *gparent = rbtree_parent(parent);
