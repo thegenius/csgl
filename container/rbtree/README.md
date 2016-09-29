@@ -31,8 +31,11 @@ extern int rbtree_iter_discard(rbtree_t *tree, rbtree_iter_t iter);
 ```
 # Benchmark  
 ```c
+this is the benchmark of insert 1,000,000 elements, and delete 1,000,000 elements.
+CPU: Intel(R) Xeon(R) CPU E5-2430 0 @ 2.20GHz
+CPU cores : 1 (on virtual machine)
 clocks per sec: 1000000
-2000000 ops time used: 2750000 clocks = 2.75 s
+2000000 ops, time used: 2750000 clocks = 2.75 s
 727272.73 ops per second
 ```
 
