@@ -29,5 +29,11 @@ extern int rbtree_iter_prev(const rbtree_t *tree, rbtree_iter_t *iter);
 extern int rbtree_iter_next(const rbtree_t *tree, rbtree_iter_t *iter);  
 extern int rbtree_iter_discard(rbtree_t *tree, rbtree_iter_t iter);  
 ```
+# Benchmark  
+```c
+clocks per sec: 1000000
+2000000 ops time used: 2750000 clocks = 2.75 s
+727272.73 ops per second
+```
 
 
