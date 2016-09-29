@@ -20,18 +20,24 @@ int rbtree_create(rbtree_t **tree) {
 }
 
 int rbtree_delete(rbtree_t **tree) {
+    rbtree_iter_t iter = &rbtree_tail;
+    rbtree_node_t *parent;
+    while (iter != &rbtree_tail && iter != &rbtree_head) {
+        if (iter->child[0] != &rbtree_tail) {
+            iter = iter->child[0];
+            continue;
+        }
+        if (iter->child[1] != &rbtree_tail) {
+            iter = iter->child[1];
+            continue;
+        }
+        parent = rbtree_parent(iter);
+        free(iter);
+        iter = parent;
+    }
     free(*tree);
     *tree = 0;
     return 0;
-}
-
-static inline void rbtree_adjust_size(rbtree_node_t *node) {
-    puts("adjust size");
-    while (node != &rbtree_head) {
-        node->size = node->child[0]->size + node->child[1]->size + 1;
-        node = rbtree_parent(node);
-    }
-    puts("adjust size finish");
 }
 
 static void rbtree_maintain(rbtree_t *tree, rbtree_node_t *node) {
@@ -93,30 +99,34 @@ void rbtree_insert_balance(rbtree_t *tree, rbtree_node_t *node) {
 void rbtree_delete_balance(rbtree_t *tree, rbtree_node_t *node) {
     /* the node is the one that you want to borrow a black node from parent */
     /* do this operation before you really want to delete a node */
+    assert(rbtree_is_black(node));
+    assert(node->child[0] == &rbtree_tail);
+    assert(node->child[1] == &rbtree_tail);
+
     rbtree_node_t *sibling, *parent, *uncle, *gparent;
     printf("delete [%d]\n", node->id);
     /* delete red node, just adjust the size */
-    if (rbtree_is_red(node)) {
-        puts("red node case, just adjust size");
-        rbtree_adjust_size(node);
-        return;
-    }
+    //if (rbtree_is_red(node)) {
+    //    puts("red node case, just adjust size");
+    //    rbtree_adjust_size(node);
+    //    return;
+    //}
 
-    /* delete the root node */
-    parent = rbtree_parent(node);
-    if (parent == &rbtree_head) {
-        puts("root case");
-        rbtree_node_t *lchild = node->child[0];
-        rbtree_node_t *rchild = node->child[1];
-        if (lchild != &rbtree_tail) {
-            tree->root = lchild;
-        } else {
-            tree->root = rchild;
-        }
-        rbtree_attach_child(&rbtree_head, 0, tree->root);
-        rbtree_set_black(tree->root);
-        return;
-    }
+    ///* delete the root node */
+    //parent = rbtree_parent(node);
+    //if (parent == &rbtree_head) {
+    //    puts("root case");
+    //    rbtree_node_t *lchild = node->child[0];
+    //    rbtree_node_t *rchild = node->child[1];
+    //    if (lchild != &rbtree_tail) {
+    //        tree->root = lchild;
+    //    } else {
+    //        tree->root = rchild;
+    //    }
+    //    rbtree_attach_child(&rbtree_head, 0, tree->root);
+    //    rbtree_set_black(tree->root);
+    //    return;
+    //}
 
     while ((parent = rbtree_parent(node)) != &rbtree_head) {
         /* if the node is black, and it has parent, there must be a sibling */
@@ -228,45 +238,32 @@ int rbtree_iter_next(const rbtree_t *tree, rbtree_iter_t *iter) {
 
 int __rbtree_iter_index(const rbtree_t *tree, const cdata_t idx, rbtree_iter_t *iter) {
     rbtree_node_t *node = tree->root;
-    if (node == &rbtree_tail) {
-        return -1;
-    }
     size_t size = idx.i;
     while (node != &rbtree_tail) {
         size_t index = node->child[0]->size;
-        if (size < index) {
-            node = node->child[0];
-            continue;
+        int cmp = size - index;
+        if (cmp == 0) {
+            printf("found id :%d\n", node->id);
+            *iter = node;
+            return 0;
         }
-        if (size > index) {
-            node = node->child[1];
-            size = size - index - 1;
-            continue;
-        }
-        *iter = node;
-        return 0;
+        printf("try search child[%d]\n", cmp>0);
+        node = node->child[cmp>0];
+        size = cmp>0 ? size - index - 1 : size;
     }
     return -1;
 }
 
-int rbtree_iter_value(const rbtree_t *tree, const cdata_t key, rbtree_iter_t *iter) {
+int __rbtree_iter_value(const rbtree_t *tree, const cdata_t key, rbtree_iter_t *iter) {
     rbtree_node_t *node = tree->root;
-    if (node == &rbtree_tail) {
-        return -1;
-    }
     size_t size = key.i;
     while (node != &rbtree_tail) {
         int cmp = tree->key_cmp(key, node->key);
-        if (cmp < 0) {
-            node = node->child[0];
-            continue;
+        if (cmp == 0) {
+            *iter = node;
+            return 0;
         }
-        if (cmp > 0) {
-            node = node->child[1];
-            continue;
-        }
-        *iter = node;
-        return 0;
+        node = node->child[cmp>0];
     }
     return -1;
 }
@@ -284,6 +281,7 @@ int __rbtree_elem_insert(rbtree_t *tree, const cdata_t key, const cdata_t val) {
         tree->root = new_node;
         return 0;
     }
+
     /* find the right place to insert */
     size_t size = key.i;
     rbtree_node_t *parent;
@@ -297,13 +295,14 @@ int __rbtree_elem_insert(rbtree_t *tree, const cdata_t key, const cdata_t val) {
             node = node->child[1];
         }
     } while (node != &rbtree_tail);
+
     /* insert the node */
     rbtree_attach_child(parent, cmp>0, new_node);
     rbtree_insert_balance(tree, new_node);
     return 0;
 }
 
-int rbtree_elem_update(rbtree_t *tree, const cdata_t key, const cdata_t val) {
+int __rbtree_elem_update(rbtree_t *tree, const cdata_t key, const cdata_t val) {
     rbtree_iter_t iter;
     int ret = rbtree_iter_value(tree, key, &iter);
     if (ret == 0) {
@@ -312,31 +311,14 @@ int rbtree_elem_update(rbtree_t *tree, const cdata_t key, const cdata_t val) {
     return ret;
 }
 
-int __rbtree_elem_delete(rbtree_t *tree, const cdata_t idx, cdata_t *val) {
-    rbtree_node_t *node, *sibling, *parent, *uncle, *gparent;
-    printf("elem delete key :%d\n", idx.i);
-    /* find the node to delete */
-    node = tree->root;
-    while (node != &rbtree_tail) {
-        int cmp = tree->key_cmp(idx, node->key);
-        if (cmp == 0) {
-            break;
-        }
-        node = node->child[cmp > 0];
-    }
-    if (node == &rbtree_tail) {
-        return -1;
-    }
-
-    /* record the value */
-    *val = node->val;
-
+/* discard a node in the tree */
+int rbtree_iter_discard(rbtree_t *tree, rbtree_iter_t node) {
     do {
-        parent = rbtree_parent(node);
+        rbtree_node_t *parent = rbtree_parent(node);
         rbtree_node_t *lchild = node->child[0];
         rbtree_node_t *rchild = node->child[1];
+        /* if left child is nil, use right child to replace this node */
         if (lchild == &rbtree_tail) {
-            puts("lchild is nil");
             if (rbtree_is_black(node) && rbtree_is_black(rchild)) {
                 rbtree_delete_balance(tree, node);
             }
@@ -346,8 +328,8 @@ int __rbtree_elem_delete(rbtree_t *tree, const cdata_t idx, cdata_t *val) {
             return 0;
         }
 
+        /* if right child is nil, use left child to replace this node */
         if (rchild == &rbtree_tail) {
-            puts("rchild is nil");
             if (rbtree_is_black(node) && rbtree_is_black(lchild)) {
                 rbtree_delete_balance(tree, node);
             }
@@ -360,27 +342,42 @@ int __rbtree_elem_delete(rbtree_t *tree, const cdata_t idx, cdata_t *val) {
         /* the node has both lchild and rchild, find a node to replace */
         rbtree_node_t *replace;
         if (lchild->size > rchild->size) {
-            puts("choose left");
             replace = lchild;
             while (replace->child[1] != &rbtree_tail) {
                 replace = replace->child[1];
             }
         } else {
-            puts("choose right");
             replace = rchild;
             while (replace->child[0] != &rbtree_tail) {
                 replace = replace->child[0];
             }
         }
-        printf("replace key %d val:%d\n", replace->key.i, replace->val.i);
+        /* replace the node */
         node->key = replace->key;
         node->val = replace->val;
         node = replace;
     } while (1);
+    return 0;
 }
 
-int rbtree_elem_remove(rbtree_t *tree, const cdata_t key, cdata_t *val) {
-    return 0;
+int __rbtree_elem_delete(rbtree_t *tree, const cdata_t idx, cdata_t *val) {
+    rbtree_iter_t iter;
+    int ret = rbtree_iter_index(tree, idx, &iter);
+    if (ret == 0) {
+        *val = iter->val;
+        rbtree_iter_discard(tree, iter);
+    }
+    return ret;
+}
+
+int __rbtree_elem_remove(rbtree_t *tree, const cdata_t key, cdata_t *val) {
+    rbtree_iter_t iter;
+    int ret = rbtree_iter_value(tree, key, &iter);
+    if (ret == 0) {
+        *val = iter->val;
+        rbtree_iter_discard(tree, iter);
+    }
+    return ret;
 }
 
 
