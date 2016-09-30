@@ -15,7 +15,7 @@ extern inline size_t next_power(size_t size) {
 }
 
 int ring_create(ring_t *ring, size_t size) {
-	size_t data_size = next_power(size);
+	size_t data_size = next_power(size + 1);
 	*ring = (struct ring*)calloc(1, sizeof(struct ring) + data_size * sizeof(cdata_t));
 	(*ring)->capc = data_size - 1;
 	(*ring)->head = 0;
