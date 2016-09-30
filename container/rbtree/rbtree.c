@@ -3,10 +3,20 @@
 #include "rbtree.h"
 #include "rbtree_struct.h"
 #include "rbtree_inline.h"
+#include <time.h>
 
 /* special node used to simplify the implementation */
 rbtree_node_t rbtree_tail = {0, (rbtree_node_t*)1, &rbtree_tail, &rbtree_tail};
 rbtree_node_t rbtree_head = {0, &rbtree_head, &rbtree_tail, &rbtree_tail};
+size_t alloc_clocks = 0;
+size_t search_clocks = 0;
+size_t attach_clocks = 0;
+size_t balance_clocks = 0;
+size_t maintain_clocks = 0;
+size_t insert_maintain_clocks = 0;
+size_t delete_maintain_clocks = 0;
+size_t delete_search_clocks = 0;
+
 
 static int default_cmp (const cdata_t a, const cdata_t b) {
     return a.i - b.i;
@@ -41,6 +51,8 @@ int rbtree_delete(rbtree_t **tree) {
 }
 
 static void rbtree_maintain(rbtree_t *tree, rbtree_node_t *node) {
+    clock_t start, finish;
+    start = clock();
     /* adjust the size */
     assert(node != &rbtree_head);
     rbtree_node_t *parent = rbtree_parent(node);
@@ -52,6 +64,8 @@ static void rbtree_maintain(rbtree_t *tree, rbtree_node_t *node) {
     /* adjust the root */
     tree->root = node;
     rbtree_set_black(tree->root);
+    finish = clock();
+    maintain_clocks += finish - start;
 }
 
 void rbtree_insert_balance(rbtree_t *tree, rbtree_node_t *node) {
@@ -93,7 +107,11 @@ void rbtree_insert_balance(rbtree_t *tree, rbtree_node_t *node) {
         node = gparent;
         break;
     }
+    clock_t start, finish;
+    //start = clock();
     rbtree_maintain(tree, node);
+    //finish = clock();
+    insert_maintain_clocks += finish - start;
 }
 
 void rbtree_delete_balance(rbtree_t *tree, rbtree_node_t *node) {
@@ -109,13 +127,11 @@ void rbtree_delete_balance(rbtree_t *tree, rbtree_node_t *node) {
         rbtree_node_t *gparent = rbtree_parent(parent);
         rbtree_node_t *sibling = rbtree_sibling(node);
         if (rbtree_is_red(parent)) {
-            puts("case : borrow from parent");
             rbtree_rotate_borrow(gparent, parent, node, sibling);
             node = parent;
             break;
         }
         if (rbtree_is_red(sibling)) {
-            puts("case : borrow from sibling");
             rbtree_rotate_borrow(gparent, parent, node, sibling);
             rbtree_set_black(sibling);
             node = parent;
@@ -125,7 +141,6 @@ void rbtree_delete_balance(rbtree_t *tree, rbtree_node_t *node) {
         rbtree_node_t *near_child = sibling->child[index];
         rbtree_node_t *far_child = sibling->child[!index];
         if (rbtree_is_red(near_child)) {
-            puts("borrow near");
             rbtree_rotate_return(parent, sibling, near_child, far_child);
             rbtree_rotate_borrow(gparent, parent, node, near_child);
             rbtree_set_black(near_child);
@@ -133,13 +148,11 @@ void rbtree_delete_balance(rbtree_t *tree, rbtree_node_t *node) {
             break;
         }
         if (rbtree_is_red(far_child)) {
-            puts("borrow far");
             rbtree_rotate_borrow(gparent, parent, node, sibling);
             rbtree_set_black(far_child);
             node = parent;
             break;
         }
-        puts("case : merge");
         assert(sibling != &rbtree_tail);
         rbtree_set_red(sibling);
         node = parent;
@@ -219,11 +232,9 @@ int __rbtree_iter_index(const rbtree_t *tree, const cdata_t idx, rbtree_iter_t *
         size_t index = node->child[0]->size;
         int cmp = size - index;
         if (cmp == 0) {
-            printf("found id :%d\n", node->id);
             *iter = node;
             return 0;
         }
-        printf("try search child[%d]\n", cmp>0);
         node = node->child[cmp>0];
         size = cmp>0 ? size - index - 1 : size;
     }
@@ -246,10 +257,14 @@ int __rbtree_iter_value(const rbtree_t *tree, const cdata_t key, rbtree_iter_t *
 
 
 int __rbtree_elem_insert(rbtree_t *tree, const cdata_t key, const cdata_t val) {
+    clock_t start, finish;
+    //start = clock();
     rbtree_node_t *new_node;
     rbtree_node_create(&new_node);
     new_node->key = key;
     new_node->val = val;
+    //finish = clock();
+    //alloc_clocks += finish - start;
 
     /* empty tree */
     rbtree_node_t *node = tree->root;
@@ -259,22 +274,40 @@ int __rbtree_elem_insert(rbtree_t *tree, const cdata_t key, const cdata_t val) {
     }
 
     /* find the right place to insert */
+    start = clock();
     size_t size = key.i;
     rbtree_node_t *parent;
     int cmp;
     do {
-        cmp = tree->key_cmp(key, node->key);
+        //cmp = tree->key_cmp(key, node->key);
+        cmp = key.i - node->key.i;
         parent = node;
+        //*/
+        node = node->child[cmp>0];
+        /*/
         if (cmp <= 0) {
             node = node->child[0];
         } else {
             node = node->child[1];
         }
+        //*/
     } while (node != &rbtree_tail);
+    finish = clock();
+    search_clocks += finish - start;
+
 
     /* insert the node */
+    //start = clock();
     rbtree_attach_child(parent, cmp>0, new_node);
+    //finish = clock();
+    //attach_clocks += finish - start;
+
+    //start = clock();
     rbtree_insert_balance(tree, new_node);
+    //finish = clock();
+    //balance_clocks += finish - start;
+
+
     return 0;
 }
 
@@ -289,6 +322,7 @@ int __rbtree_elem_update(rbtree_t *tree, const cdata_t key, const cdata_t val) {
 
 /* discard a node in the tree */
 int rbtree_iter_discard(rbtree_t *tree, rbtree_iter_t node) {
+    clock_t start, finish;
     do {
         rbtree_node_t *parent = rbtree_parent(node);
         rbtree_node_t *lchild = node->child[0];
@@ -300,7 +334,10 @@ int rbtree_iter_discard(rbtree_t *tree, rbtree_iter_t node) {
             }
             rbtree_set_black(rchild);
             rbtree_attach_child(parent, rbtree_get_index(node), rchild);
+            //start = clock();
             rbtree_maintain(tree, rchild);
+            //finish = clock();
+            //delete_maintain_clocks += finish - start;
             return 0;
         }
 
@@ -311,7 +348,10 @@ int rbtree_iter_discard(rbtree_t *tree, rbtree_iter_t node) {
             }
             rbtree_set_black(lchild);
             rbtree_attach_child(parent, rbtree_get_index(node), lchild);
+            //start = clock();
             rbtree_maintain(tree, lchild);
+            //finish = clock();
+            //delete_maintain_clocks += finish - start;
             return 0;
         }
 
@@ -338,7 +378,11 @@ int rbtree_iter_discard(rbtree_t *tree, rbtree_iter_t node) {
 
 int __rbtree_elem_delete(rbtree_t *tree, const cdata_t idx, cdata_t *val) {
     rbtree_iter_t iter;
+    clock_t start, finish;
+    start = clock();
     int ret = rbtree_iter_index(tree, idx, &iter);
+    finish = clock();
+    delete_search_clocks += finish - start;
     if (ret == 0) {
         *val = iter->val;
         rbtree_iter_discard(tree, iter);
