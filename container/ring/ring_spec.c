@@ -7,7 +7,7 @@
 #include "cdata.h"
 #include "ring.h"
 
-ring_t *global_queue_node;
+ring_t global_queue_node;
 _Atomic int node_begin_flag = ATOMIC_VAR_INIT(0);
 
 _Atomic int queue_begin_flag = ATOMIC_VAR_INIT(0);
@@ -17,7 +17,7 @@ typedef void* (*pthread_func_t) (void*);
 void* benchmark_node(void *arg) {
 	while( !atomic_load(&node_begin_flag)) {
 	}
-	
+
 	cdata_t data;
 
 	// warm up
@@ -46,8 +46,8 @@ void create_thread(int num, pthread_func_t func, _Atomic int *begin_flag) {
 	for(int i=0; i<num; ++i) {
 		pthread_create(&tid[i], NULL, func, NULL);
 	}
-	if (begin_flag) {	
-		atomic_store(begin_flag, 1);	
+	if (begin_flag) {
+		atomic_store(begin_flag, 1);
 	}
 	for(int i=0; i<num; ++i) {
 		pthread_join(tid[i], NULL);
@@ -56,7 +56,7 @@ void create_thread(int num, pthread_func_t func, _Atomic int *begin_flag) {
 
 
 void verify_cqueue_node() {
-	ring_t *queue_node = NULL;
+	ring_t queue_node = NULL;
 	ring_create(&queue_node, 128);
 	assert(queue_node != NULL);
 	printf("addr: %llu\n", queue_node);
@@ -65,14 +65,14 @@ void verify_cqueue_node() {
 	ring_push(queue_node, 3);
 
 	cdata_t data;
-	ring_pull(queue_node, &data);	
+	ring_pull(queue_node, &data);
 	printf("data :%d\n", data.i);
-	ring_pull(queue_node, &data);	
+	ring_pull(queue_node, &data);
 	printf("data :%d\n", data.i);
-	ring_pull(queue_node, &data);	
+	ring_pull(queue_node, &data);
 	printf("data :%d\n", data.i);
 
-	printf("CLOCKS_PER_SEC:%d\n", CLOCKS_PER_SEC);	
+	printf("CLOCKS_PER_SEC:%d\n", CLOCKS_PER_SEC);
 	//ring_delete(&queue_node);
 
 }

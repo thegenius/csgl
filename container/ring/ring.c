@@ -1,6 +1,6 @@
 #include "ring.h"
 
-struct ring_t {
+struct ring {
 	size_t head;
 	size_t tail;
 	size_t size;
@@ -21,23 +21,23 @@ extern inline size_t next_power(size_t size) {
 	return n+1;
 }
 
-int ring_create(ring_t **ring, size_t size) {
+int ring_create(ring_t *ring, size_t size) {
 	size_t data_size = next_power(size);
-	*ring = (ring_t*)calloc(1, sizeof(ring_t) + data_size * sizeof(cdata_t));
+	*ring = (struct ring*)calloc(1, sizeof(struct ring) + data_size * sizeof(cdata_t));
 	(*ring)->capc = data_size - 1;
 	(*ring)->head = 0;
-	(*ring)->tail = 0; 
-	(*ring)->size = 0; 
+	(*ring)->tail = 0;
+	(*ring)->size = 0;
 	return 0;
 }
 
-int ring_delete(ring_t **ring) {
+int ring_delete(ring_t *ring) {
 	free(*ring);
 	*ring = 0;
 	return 0;
 }
 
-int __ring_push(ring_t *ring, const cdata_t data) {
+int __ring_push(ring_t ring, const cdata_t data) {
 	size_t head = ring->head;
 	size_t tail = ring->tail;
 	size_t next_tail = (tail+1) & ring->capc;
@@ -46,11 +46,11 @@ int __ring_push(ring_t *ring, const cdata_t data) {
 	}
 	ring->data[tail] = data;
 	ring->tail = next_tail;
-	++ ring->size; 
+	++ ring->size;
 	return 0;
 }
 
-int ring_pull(ring_t *ring, cdata_t *data) {
+int __ring_pull(ring_t ring, cdata_t *data) {
 	if (ring->size <= 0) {
 		return -1;
 	}
@@ -62,11 +62,11 @@ int ring_pull(ring_t *ring, cdata_t *data) {
 	return 0;
 }
 
-bool ring_empty(ring_t *ring) {
+bool ring_empty(ring_t ring) {
 	return ring->head == ring->tail;
 }
 
-bool ring_full(ring_t *ring) {
+bool ring_full(ring_t ring) {
 	return (ring->head & ring->capc) == ((ring->tail+1) & ring->capc);
 }
 
