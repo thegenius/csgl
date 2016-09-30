@@ -1,12 +1,5 @@
 #include "ring.h"
-
-struct ring {
-	size_t head;
-	size_t tail;
-	size_t size;
-	size_t capc;
-	cdata_t data[0];
-};
+#include "ring_struct.h"
 
 extern inline size_t next_power(size_t size) {
 	size_t n = size - 1;

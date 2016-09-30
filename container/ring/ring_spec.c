@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdatomic.h>
 #include <assert.h>
 #include <time.h>
 #include <pthread.h>
@@ -8,15 +7,11 @@
 #include "ring.h"
 
 ring_t global_queue_node;
-_Atomic int node_begin_flag = ATOMIC_VAR_INIT(0);
-
-_Atomic int queue_begin_flag = ATOMIC_VAR_INIT(0);
+int node_begin_flag = 0;
 
 typedef void* (*pthread_func_t) (void*);
 
 void* benchmark_node(void *arg) {
-	while( !atomic_load(&node_begin_flag)) {
-	}
 
 	cdata_t data;
 
@@ -41,13 +36,13 @@ void* benchmark_node(void *arg) {
 	return (void*)0;
 }
 
-void create_thread(int num, pthread_func_t func, _Atomic int *begin_flag) {
+void create_thread(int num, pthread_func_t func, int *begin_flag) {
 	pthread_t *tid = (pthread_t*)malloc(num*sizeof(pthread_t));
 	for(int i=0; i<num; ++i) {
 		pthread_create(&tid[i], NULL, func, NULL);
 	}
 	if (begin_flag) {
-		atomic_store(begin_flag, 1);
+        *begin_flag = 1;
 	}
 	for(int i=0; i<num; ++i) {
 		pthread_join(tid[i], NULL);
