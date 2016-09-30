@@ -22,11 +22,14 @@ void* benchmark_node(void *arg) {
 	}
 
 	clock_t b = clock();
-	size_t ntimes = 10000000;
+	size_t ntimes = 200;
 	for (int i=0; i<ntimes; ++i) {
 		ring_push(global_queue_node, 23);
+	}
+	for (int i=0; i<ntimes; ++i) {
 		ring_pull(global_queue_node, &data);
 	}
+
 	clock_t e = clock();
 	printf("[%llu] node_bench push %d  pull %d\n", pthread_self(), ntimes, ntimes);
 	printf("[%llu] node_bench begin time: %d us\n", pthread_self(), b);
@@ -52,7 +55,7 @@ void create_thread(int num, pthread_func_t func, int *begin_flag) {
 
 void verify_cqueue_node() {
 	ring_t queue_node = NULL;
-	ring_create(&queue_node, 128);
+	ring_create(&queue_node, 28);
 	assert(queue_node != NULL);
 	printf("addr: %llu\n", queue_node);
 	ring_push(queue_node, 5);
@@ -77,7 +80,7 @@ void verify_cqueue_node() {
 
 void prepare_env() {
 	srand((unsigned int)time(NULL));
-	ring_create(&global_queue_node, 128);
+	ring_create(&global_queue_node, 28);
 }
 
 int main(int argc, char* argv[]) {

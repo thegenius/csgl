@@ -6,7 +6,7 @@ struct ring {
 	size_t tail;
 	size_t size;
 	size_t capc;
-	cdata_t data[0];
+	cdata_t *data;
 };
 
 #endif
