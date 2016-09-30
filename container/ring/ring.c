@@ -3,7 +3,7 @@
 #include "ring.h"
 #include "ring_struct.h"
 
-extern inline size_t next_power(size_t size) {
+static inline size_t next_power(size_t size) {
     printf("origin size: %d\n", size);
 	size_t n = size - 1;
 	n = n | (n>>1);
@@ -27,6 +27,7 @@ int ring_create(ring_t *ring, size_t size) {
     size_t data_size = next_power(size + 1);
     printf("src size:%d create size :%d\n", size, data_size);
     (*ring)->data = (cdata_t*)calloc(1, data_size * sizeof(cdata_t));
+    printf("data addr:%llx\n", (*ring)->data);
     if ((*ring)->data == 0) {
         return -1;
     }
@@ -45,12 +46,12 @@ int ring_realloc(ring_t ring, size_t size) {
     }
     size_t data_size = next_power(size + 1);
     printf("old size:%d\n", (ring->capc + 1) * sizeof(cdata_t));
-    printf("old ptr:%llu new size:%d\n", ring->data, data_size * sizeof(cdata_t));
+    printf("old ptr:%llx new size:%d\n", ring->data, data_size * sizeof(cdata_t));
     ring->data = (cdata_t*)realloc(ring->data, data_size * sizeof(cdata_t));
     if (!ring->data) {
         return -1;
     }
-    puts("here");
+    printf("new data addr:%llx\n", ring->data);
     if (ring->tail < ring->head) {
         size_t offset = (data_size - ring->capc - 1) * sizeof(cdata_t);
         int head = ring->head;

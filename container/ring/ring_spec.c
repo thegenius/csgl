@@ -23,13 +23,20 @@ void* benchmark_node(void *arg) {
 
 	clock_t b = clock();
 	size_t ntimes = 200;
+    ring_realloc(global_queue_node, 13);
+    ring_realloc(global_queue_node, 132);
+    ring_realloc(global_queue_node, 313);
+    ring_realloc(global_queue_node, 513);
+    ring_realloc(global_queue_node, 613);
+    ring_realloc(global_queue_node, 1113);
+    /*
 	for (int i=0; i<ntimes; ++i) {
 		ring_push(global_queue_node, 23);
 	}
 	for (int i=0; i<ntimes; ++i) {
 		ring_pull(global_queue_node, &data);
 	}
-
+    */
 	clock_t e = clock();
 	printf("[%llu] node_bench push %d  pull %d\n", pthread_self(), ntimes, ntimes);
 	printf("[%llu] node_bench begin time: %d us\n", pthread_self(), b);
