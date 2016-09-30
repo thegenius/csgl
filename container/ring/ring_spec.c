@@ -4,7 +4,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <unistd.h>
-#include "container_data.h"
+#include "cdata.h"
 #include "ring.h"
 
 ring_t *global_queue_node;
@@ -18,7 +18,7 @@ void* benchmark_node(void *arg) {
 	while( !atomic_load(&node_begin_flag)) {
 	}
 	
-	container_data_t data;
+	cdata_t data;
 
 	// warm up
 	for (int i=0; i<1000; ++i) {
@@ -64,7 +64,7 @@ void verify_cqueue_node() {
 	ring_push(queue_node, 4);
 	ring_push(queue_node, 3);
 
-	container_data_t data;
+	cdata_t data;
 	ring_pull(queue_node, &data);	
 	printf("data :%d\n", data.i);
 	ring_pull(queue_node, &data);	

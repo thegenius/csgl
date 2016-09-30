@@ -5,7 +5,7 @@ struct ring_t {
 	size_t tail;
 	size_t size;
 	size_t capc;
-	container_data_t data[0];
+	cdata_t data[0];
 };
 
 extern inline size_t next_power(size_t size) {
@@ -23,7 +23,7 @@ extern inline size_t next_power(size_t size) {
 
 int ring_create(ring_t **ring, size_t size) {
 	size_t data_size = next_power(size);
-	*ring = (ring_t*)calloc(1, sizeof(ring_t) + data_size * sizeof(container_data_t));
+	*ring = (ring_t*)calloc(1, sizeof(ring_t) + data_size * sizeof(cdata_t));
 	(*ring)->capc = data_size - 1;
 	(*ring)->head = 0;
 	(*ring)->tail = 0; 
@@ -37,7 +37,7 @@ int ring_delete(ring_t **ring) {
 	return 0;
 }
 
-int __ring_push(ring_t *ring, const container_data_t data) {
+int __ring_push(ring_t *ring, const cdata_t data) {
 	size_t head = ring->head;
 	size_t tail = ring->tail;
 	size_t next_tail = (tail+1) & ring->capc;
@@ -50,7 +50,7 @@ int __ring_push(ring_t *ring, const container_data_t data) {
 	return 0;
 }
 
-int ring_pull(ring_t *ring, container_data_t *data) {
+int ring_pull(ring_t *ring, cdata_t *data) {
 	if (ring->size <= 0) {
 		return -1;
 	}
