@@ -1,5 +1,5 @@
-#ifndef __RING_H__
-#define __RING_H__
+#ifndef __ITRIE_H__
+#define __ITRIE_H__
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
