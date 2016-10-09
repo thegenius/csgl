@@ -30,4 +30,4 @@ A project must have a roadmap and the roadmap is:
 
 
 ##RELATED WORK
-  There is many great work before this project, and we must have our respect for them.
+  There are many great works before this project, thanks to all of you.
