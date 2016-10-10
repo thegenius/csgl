@@ -32,6 +32,8 @@ typedef union cdata_t {
 	char16_t c16;
 	char32_t c32;
 	void* ptr;
+    uintptr_t uintptr;
+    intptr_t intptr;
 } cdata_t;
 
 typedef int (*cdata_new_func) (cdata_t*); 
