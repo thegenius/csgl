@@ -1,4 +1,4 @@
-all: ring_lib ring_spec
+all: ring_lib ring_spec ring_bnch
 
 ring_lib: ring_static_lib ring_dynamic_lib
 
@@ -16,3 +16,8 @@ ring_spec : ring_static_lib ring_spec.c
 	gcc -I../../utils/cdata -c -std=c11 ring_spec.c -o ring_spec.o
 	gcc -lpthread -o  ring_spec ring_spec.o libring.a
 	rm ring_spec.o
+
+ring_spec : ring_static_lib ring_bnch.c
+	gcc -I../../utils/cdata -c -std=c11 ring_bnch.c -o ring_bnch.o
+	gcc -o ring_bnch ring_bnch.o libring.a
+	rm ring_bnch.o

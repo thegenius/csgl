@@ -3,8 +3,10 @@
 #include <time.h>
 #include <pthread.h>
 #include <unistd.h>
+
 #include "cdata.h"
 #include "ring.h"
+#include "ring_struct.h"
 
 ring_t global_queue_node;
 int node_begin_flag = 0;
@@ -21,23 +23,25 @@ void* benchmark_node(void *arg) {
 		ring_pull(global_queue_node, &data);
 	}
 
-	clock_t b = clock();
-	size_t ntimes = 200;
     ring_realloc(global_queue_node, 13);
     ring_realloc(global_queue_node, 132);
     ring_realloc(global_queue_node, 313);
     ring_realloc(global_queue_node, 513);
     ring_realloc(global_queue_node, 613);
     ring_realloc(global_queue_node, 1113);
-    /*
+
+	clock_t b = clock();
+	size_t ntimes = 2000000;
 	for (int i=0; i<ntimes; ++i) {
-		ring_push(global_queue_node, 23);
+		ring_push(global_queue_node, i);
 	}
 	for (int i=0; i<ntimes; ++i) {
 		ring_pull(global_queue_node, &data);
+        printf("data : %d\n", data.i);
+        assert(data.i == i);
 	}
-    */
 	clock_t e = clock();
+
 	printf("[%llu] node_bench push %d  pull %d\n", pthread_self(), ntimes, ntimes);
 	printf("[%llu] node_bench begin time: %d us\n", pthread_self(), b);
 	printf("[%llu] node_bench end   time: %d us\n", pthread_self(), e);
@@ -60,28 +64,6 @@ void create_thread(int num, pthread_func_t func, int *begin_flag) {
 }
 
 
-void verify_cqueue_node() {
-	ring_t queue_node = NULL;
-	ring_create(&queue_node, 28);
-	assert(queue_node != NULL);
-	printf("addr: %llu\n", queue_node);
-	ring_push(queue_node, 5);
-	ring_push(queue_node, 4);
-	ring_push(queue_node, 3);
-
-	cdata_t data;
-	ring_pull(queue_node, &data);
-	printf("data :%d\n", data.i);
-	ring_pull(queue_node, &data);
-	printf("data :%d\n", data.i);
-	ring_pull(queue_node, &data);
-	printf("data :%d\n", data.i);
-
-	printf("CLOCKS_PER_SEC:%d\n", CLOCKS_PER_SEC);
-	//ring_delete(&queue_node);
-
-}
-
 
 
 
@@ -90,9 +72,103 @@ void prepare_env() {
 	ring_create(&global_queue_node, 28);
 }
 
+int verify_ring_push_pull() {
+    puts("verify ring push pull ....!");
+    cdata_t data;
+    ring_t ring;
+    ring_create(&ring, 28);
+    assert(ring != NULL);
+
+    ring_push(ring, 5);
+    ring_pull(ring, &data);
+    assert(data.i == 5);
+
+    ring_push(ring, 5);
+    ring_push(ring, 4);
+    ring_push(ring, 3);
+    ring_pull(ring, &data);
+    assert(data.i == 5);
+    ring_pull(ring, &data);
+    assert(data.i == 4);
+    ring_pull(ring, &data);
+    assert(data.i == 3);
+    puts("verify ring push pull pass!");
+    return 1;
+}
+
+int verify_ring_realloc() {
+    puts("verify ring realloc ....!");
+    cdata_t data;
+    ring_t ring;
+    ring_create(&ring, 5);
+    assert(ring != NULL);
+    assert(ring->capc == 7);
+
+    puts("verify ring realloc case[1] ....!");
+    ring_push(ring, 23);
+    ring_push(ring, 24);
+    ring_push(ring, 25);
+    ring_realloc(ring, 51);
+    assert(ring->capc == 63);
+    ring_pull(ring, &data);
+    assert(data.i == 23);
+    ring_pull(ring, &data);
+    assert(data.i == 24);
+    ring_pull(ring, &data);
+    assert(data.i == 25);
+    puts("verify ring realloc case[1] pass!");
+
+    puts("verify ring realloc case[2] ....!");
+    ring_push(ring, 23);
+    ring_pull(ring, &data);
+    assert(data.i == 23);
+
+    ring_push(ring, 24);
+    ring_push(ring, 25);
+    ring_realloc(ring, 110);
+    assert(ring->capc == 127);
+    ring_pull(ring, &data);
+    assert(data.i == 24);
+    ring_pull(ring, &data);
+    assert(data.i == 25);
+    ring_delete(&ring);
+    puts("verify ring realloc case[2] pass!");
+
+    puts("verify ring realloc case[3] ....!");
+    ring_create(&ring, 7);
+    assert(ring->capc == 7);
+    for (int i=0; i<3; ++i) {
+        ring_push(ring, i);
+        ring_pull(ring, &data);
+    }
+    for (int i=0; i<3; ++i) {
+        ring_push(ring, i);
+        ring_push(ring, i+1);
+        ring_push(ring, i+2);
+        ring_pull(ring, &data);
+    }
+    assert(ring->size == 6);
+    assert(ring->tail < ring->head);
+    assert(ring->head == 6);
+    assert(ring->data[ring->head].i == 1);
+    assert(ring->data[ring->head+1].i == 2);
+
+    ring_realloc(ring, 15);
+    assert(ring->size == 6);
+    assert(ring->capc == 15);
+    assert(ring->tail < ring->head);
+    assert(ring->head == 14);
+    assert(ring->data[ring->head].i == 1);
+    assert(ring->data[ring->head+1].i == 2);
+    puts("verify ring realloc case[3] pass!");
+
+    puts("verify ring realloc pass!");
+    return 1;
+}
+
 int main(int argc, char* argv[]) {
-	prepare_env();
-	create_thread(1, benchmark_node, &node_begin_flag);
-	return 0;
+    assert(verify_ring_push_pull());
+    assert(verify_ring_realloc());
+    return 0;
 }
 
