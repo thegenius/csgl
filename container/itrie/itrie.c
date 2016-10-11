@@ -142,8 +142,30 @@ int __itrie_elem_update(itrie_t itrie, const cdata_t key, const cdata_t val) {
 }
 
 
-int __itrie_elem_remove(itrie_t itrie, const cdata_t key, cdata_t *val) {
+int __itrie_elem_remove(itrie_t itrie, cdata_t key, cdata_t *val) {
+    itrie_node_t node = itrie->root;
+    for (int i=0; i<itrie->max_level; ++i) {
+        size_t idx = itrie_get_idx(key);
+        itrie_pair_t cell = node->cell[idx];
+        if (itrie_has_sub(cell.key)) {
+            node = cell.val.ptr;
+            key = (cdata_t)((uintptr_t)key.ptr >> ITRIE_NODE_IDX_BITS);
+        } else {
+            if (!itrie_has_val(cell.key)) {
+                return -1;
+            }
 
+            key = (cdata_t)((uintptr_t)key.ptr >> ITRIE_NODE_IDX_BITS);
+            if (itrie_decode_val(cell.key).ptr == key.ptr) {
+                *val = cell.val;
+                node->cell[idx].key.ptr = 0;
+                return 0;
+            }
+
+            return -1;
+        }
+    }
+    return -1;
 }
 
 

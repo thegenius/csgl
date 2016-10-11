@@ -68,9 +68,45 @@ int verify_itrie_insert() {
     return 1;
 }
 
+int verify_itrie_remove() {
+    puts("verify itrie remove ....!");
+    itrie_t itrie;
+    itrie_create(&itrie);
+
+    itrie_elem_insert(itrie, 0x90103, 4);
+    assert(itrie->root->cell[3].val.i == 4);
+    assert(itrie_elem_insert(itrie, 0x90103, 8));
+
+
+    itrie_elem_insert(itrie, 0x80503, 8);
+    assert(itrie->root->cell[3].val.i != 4);
+    itrie_iter_t iter;
+    itrie_iter_create(itrie, &iter);
+    assert(itrie_iter_search(itrie, 0x80003, iter));
+    assert(!itrie_iter_search(itrie, 0x80503, iter));
+
+    cdata_t key;
+    cdata_t val;
+    assert(!itrie_iter_item(iter, &key, &val));
+    assert(key.i == 0x80503);
+    assert(val.i == 8);
+
+    val.ptr = 0;
+    assert(!itrie_elem_remove(itrie, 0x80503, &val));
+    assert(val.i == 8);
+
+    assert(itrie_iter_search(itrie, 0x80503, iter));
+
+
+    itrie_delete(&itrie);
+    puts("verify itrie remove pass!");
+    return 1;
+}
+
 int main(int argc, char* argv[]) {
     assert(verify_itrie_inline());
     assert(verify_itrie_insert());
+    assert(verify_itrie_remove());
     return 0;
 }
 
