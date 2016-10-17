@@ -1,6 +1,6 @@
 The int trie is used to implement dict
 ## performance  
-clocks per sec: 1000000
+clocks per sec: 1000000  
 1000000 insert time used: 170000 clocks = 0.17 s  
 5882352.94 insert per second  
 1000000 delete time used: 220000 clocks = 0.22 s  
